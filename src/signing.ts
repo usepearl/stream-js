@@ -3,7 +3,7 @@ import jwt, { SignOptions } from 'jsonwebtoken';
 // for a claim in jwt
 function joinClaimValue(items: string | string[]): string {
   const values = Array.isArray(items) ? items : [items];
-  const claims = [];
+  const claims: string[] = [];
   for (let i = 0; i < values.length; i += 1) {
     const s = values[i].trim();
     if (s === '*') return s;

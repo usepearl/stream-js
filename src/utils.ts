@@ -100,7 +100,7 @@ function replaceStreamObjects<T, V>(obj: T): V {
 
   const cloned = {};
   Object.keys(obj).forEach((k) => {
-    // @ts-expect-error
+    // @ts-ignore
     cloned[k] = replaceStreamObjects(obj[k]);
   });
 
