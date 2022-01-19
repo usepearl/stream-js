@@ -15,7 +15,7 @@
   "scripts": {
     "transpile": "babel src --out-dir lib --extensions '.ts'",
     "types": "tsc --emitDeclarationOnly",
-    "build": "rm -rf lib && yarn run transpile && yarn run types",
+    "build": "rm -rf lib && yarn run transpile && yarn run types && yarn tsc",
     "dist": "webpack && webpack --env minify",
     "eslint": "eslint \"**/*.{js,ts}\" --max-warnings 0",
     "prettier": "prettier --list-different \"**/*.{js,ts}\"",
@@ -31,8 +31,7 @@
     "prepare": "yarn run build",
     "preversion": "yarn run test-unit-node",
     "version": "yarn run dist && yarn run build && git add dist",
-    "postversion": "git push && git push --tags && npm publish",
-    "postinstall": "yarn tsc"
+    "postversion": "git push && git push --tags && npm publish"
   },
   "husky": {
     "hooks": {
