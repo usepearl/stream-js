@@ -1,7 +1,7 @@
 /// <reference path="../types/modules.d.ts" />
 
 import * as Faye from 'faye';
-import { StreamClient, APIResponse, UR, RealTimeMessage } from './client';
+import { StreamClient, APIResponse, UR, RealTimeMessage, DefaultGenerics } from './client';
 import { StreamUser, EnrichedUser } from './user';
 import { FeedError, SiteError } from './errors';
 import utils from './utils';
@@ -76,78 +76,70 @@ type BaseActivity = {
   to?: string[];
 };
 
-export type NewActivity<ActivityType extends UR = UR> = ActivityType &
-  BaseActivity & {
-    actor: string | StreamUser;
-    object: string | unknown;
-    foreign_id?: string;
-    time?: string;
-  };
+export type NewActivity<StreamFeedGenerics extends DefaultGenerics = DefaultGenerics> =
+  StreamFeedGenerics['activityType'] &
+    BaseActivity & {
+      actor: string | StreamUser;
+      object: string | unknown;
+      foreign_id?: string;
+      time?: string;
+    };
 
-export type UpdateActivity<ActivityType extends UR = UR> = ActivityType &
-  BaseActivity & {
-    actor: string;
-    foreign_id: string;
-    object: string | unknown;
-    time: string;
-  };
+export type UpdateActivity<StreamFeedGenerics extends DefaultGenerics = DefaultGenerics> =
+  StreamFeedGenerics['activityType'] &
+    BaseActivity & {
+      actor: string;
+      foreign_id: string;
+      object: string | unknown;
+      time: string;
+    };
 
-export type Activity<ActivityType extends UR = UR> = ActivityType &
-  BaseActivity & {
-    actor: string;
-    foreign_id: string;
-    id: string;
-    object: string | unknown;
-    time: string;
-    analytics?: Record<string, number>; // ranked feeds only
-    extra_context?: UR;
-    origin?: string;
-    score?: number; // ranked feeds only
-    // ** Add new fields to EnrichedActivity as well **
-  };
+export type Activity<StreamFeedGenerics extends DefaultGenerics = DefaultGenerics> =
+  StreamFeedGenerics['activityType'] &
+    BaseActivity & {
+      actor: string;
+      foreign_id: string;
+      id: string;
+      object: string | unknown;
+      time: string;
+      analytics?: Record<string, number>; // ranked feeds only
+      extra_context?: UR;
+      origin?: string;
+      score?: number; // ranked feeds only
+      // ** Add new fields to EnrichedActivity as well **
+    };
 
-export type ReactionsRecords<
-  ReactionType extends UR = UR,
-  ChildReactionType extends UR = UR,
-  UserType extends UR = UR,
-> = Record<string, EnrichedReaction<ReactionType, ChildReactionType, UserType>[]>;
+export type ReactionsRecords<StreamFeedGenerics extends DefaultGenerics = DefaultGenerics> = Record<
+  string,
+  EnrichedReaction<StreamFeedGenerics>[]
+>;
 
-export type EnrichedActivity<
-  UserType extends UR = UR,
-  ActivityType extends UR = UR,
-  CollectionType extends UR = UR,
-  ReactionType extends UR = UR,
-  ChildReactionType extends UR = UR,
-> = ActivityType &
-  BaseActivity &
-  Pick<Activity, 'foreign_id' | 'id' | 'time' | 'analytics' | 'extra_context' | 'origin' | 'score'> & {
-    actor: EnrichedUser<UserType> | string;
-    // Object should be casted based on the verb
-    object:
-      | string
-      | unknown
-      | EnrichedActivity<UserType, ActivityType, CollectionType, ReactionType, ChildReactionType>
-      | EnrichedReaction<ReactionType, ChildReactionType, UserType>
-      | CollectionResponse<CollectionType>;
-    latest_reactions?: ReactionsRecords<ReactionType, ChildReactionType, UserType>;
-    latest_reactions_extra?: Record<string, { next?: string }>;
-    own_reactions?: ReactionsRecords<ReactionType, ChildReactionType, UserType>;
-    own_reactions_extra?: Record<string, { next?: string }>;
-    // Reaction posted to feed
-    reaction?: EnrichedReaction<ReactionType, ChildReactionType, UserType>;
-    // enriched reactions
-    reaction_counts?: Record<string, number>;
-  };
+export type EnrichedActivity<StreamFeedGenerics extends DefaultGenerics = DefaultGenerics> =
+  StreamFeedGenerics['activityType'] &
+    BaseActivity &
+    Pick<Activity, 'foreign_id' | 'id' | 'time' | 'analytics' | 'extra_context' | 'origin' | 'score'> & {
+      actor: EnrichedUser<StreamFeedGenerics> | string;
+      // Object should be casted based on the verb
+      object:
+        | string
+        | unknown
+        | EnrichedActivity<StreamFeedGenerics>
+        | EnrichedReaction<StreamFeedGenerics>
+        | CollectionResponse<StreamFeedGenerics>;
+      latest_reactions?: ReactionsRecords<StreamFeedGenerics>;
+      latest_reactions_extra?: Record<string, { next?: string }>;
+      own_reactions?: ReactionsRecords<StreamFeedGenerics>;
+      own_reactions_extra?: Record<string, { next?: string }>;
+      // Reaction posted to feed
+      reaction?: EnrichedReaction<StreamFeedGenerics>;
+      // enriched reactions
+      reaction_counts?: Record<string, number>;
+    };
 
-export type FlatActivity<ActivityType extends UR = UR> = Activity<ActivityType>;
+export type FlatActivity<StreamFeedGenerics extends DefaultGenerics = DefaultGenerics> = Activity<StreamFeedGenerics>;
 
-export type FlatActivityEnriched<
-  UserType extends UR = UR,
-  ActivityType extends UR = UR,
-  CollectionType extends UR = UR,
-  ReactionType extends UR = UR,
-  ChildReactionType extends UR = UR,
-> = EnrichedActivity<UserType, ActivityType, CollectionType, ReactionType, ChildReactionType>;
+export type FlatActivityEnriched<StreamFeedGenerics extends DefaultGenerics = DefaultGenerics> =
+  EnrichedActivity<StreamFeedGenerics>;
 
 type BaseAggregatedActivity = {
   activity_count: number;
@@ -160,79 +152,66 @@ type BaseAggregatedActivity = {
   score?: number;
 };
 
-export type AggregatedActivity<ActivityType extends UR = UR> = BaseAggregatedActivity & {
-  activities: Activity<ActivityType>[];
-};
+export type AggregatedActivity<StreamFeedGenerics extends DefaultGenerics = DefaultGenerics> =
+  BaseAggregatedActivity & {
+    activities: Activity<StreamFeedGenerics>[];
+  };
 
-export type AggregatedActivityEnriched<
-  UserType extends UR = UR,
-  ActivityType extends UR = UR,
-  CollectionType extends UR = UR,
-  ReactionType extends UR = UR,
-  ChildReactionType extends UR = UR,
-> = BaseAggregatedActivity & {
-  activities: EnrichedActivity<UserType, ActivityType, CollectionType, ReactionType, ChildReactionType>[];
-};
+export type AggregatedActivityEnriched<StreamFeedGenerics extends DefaultGenerics = DefaultGenerics> =
+  BaseAggregatedActivity & {
+    activities: EnrichedActivity<StreamFeedGenerics>[];
+  };
 
 type BaseNotificationActivity = { is_read: boolean; is_seen: boolean };
 
-export type NotificationActivity<ActivityType extends UR = UR> = AggregatedActivity<ActivityType> &
-  BaseNotificationActivity;
+export type NotificationActivity<StreamFeedGenerics extends DefaultGenerics = DefaultGenerics> =
+  AggregatedActivity<StreamFeedGenerics> & BaseNotificationActivity;
 
-export type NotificationActivityEnriched<
-  UserType extends UR = UR,
-  ActivityType extends UR = UR,
-  CollectionType extends UR = UR,
-  ReactionType extends UR = UR,
-  ChildReactionType extends UR = UR,
-> = BaseNotificationActivity &
-  AggregatedActivityEnriched<UserType, ActivityType, CollectionType, ReactionType, ChildReactionType>;
+export type NotificationActivityEnriched<StreamFeedGenerics extends DefaultGenerics = DefaultGenerics> =
+  BaseNotificationActivity & AggregatedActivityEnriched<StreamFeedGenerics>;
 
-export type FeedAPIResponse<
-  UserType extends UR = UR,
-  ActivityType extends UR = UR,
-  CollectionType extends UR = UR,
-  ReactionType extends UR = UR,
-  ChildReactionType extends UR = UR,
-> = APIResponse & {
+export type FeedAPIResponse<StreamFeedGenerics extends DefaultGenerics = DefaultGenerics> = APIResponse & {
   next: string;
   results:
-    | FlatActivity<ActivityType>[]
-    | FlatActivityEnriched<UserType, ActivityType, CollectionType, ReactionType, ChildReactionType>[]
-    | AggregatedActivity<ActivityType>[]
-    | AggregatedActivityEnriched<UserType, ActivityType, CollectionType, ReactionType, ChildReactionType>[]
-    | NotificationActivity<ActivityType>[]
-    | NotificationActivityEnriched<UserType, ActivityType, CollectionType, ReactionType, ChildReactionType>[];
+    | FlatActivity<StreamFeedGenerics>[]
+    | FlatActivityEnriched<StreamFeedGenerics>[]
+    | AggregatedActivity<StreamFeedGenerics>[]
+    | AggregatedActivityEnriched<StreamFeedGenerics>[]
+    | NotificationActivity<StreamFeedGenerics>[]
+    | NotificationActivityEnriched<StreamFeedGenerics>[];
 
   // Notification Feed only
   unread?: number;
   unseen?: number;
 };
 
-export type PersonalizationFeedAPIResponse<
-  UserType extends UR = UR,
-  ActivityType extends UR = UR,
-  CollectionType extends UR = UR,
-  ReactionType extends UR = UR,
-  ChildReactionType extends UR = UR,
-> = APIResponse & {
-  limit: number;
-  next: string;
-  offset: number;
-  results: FlatActivityEnriched<UserType, ActivityType, CollectionType, ReactionType, ChildReactionType>[];
-  version: string;
+export type PersonalizationFeedAPIResponse<StreamFeedGenerics extends DefaultGenerics = DefaultGenerics> =
+  APIResponse & {
+    limit: number;
+    next: string;
+    offset: number;
+    results: FlatActivityEnriched<StreamFeedGenerics>[];
+    version: string;
+  };
+
+export type GetActivitiesAPIResponse<StreamFeedGenerics extends DefaultGenerics = DefaultGenerics> = APIResponse & {
+  results: FlatActivity<StreamFeedGenerics>[] | FlatActivityEnriched<StreamFeedGenerics>[];
 };
 
-export type GetActivitiesAPIResponse<
-  UserType extends UR = UR,
-  ActivityType extends UR = UR,
-  CollectionType extends UR = UR,
-  ReactionType extends UR = UR,
-  ChildReactionType extends UR = UR,
-> = APIResponse & {
-  results:
-    | FlatActivity<ActivityType>[]
-    | FlatActivityEnriched<UserType, ActivityType, CollectionType, ReactionType, ChildReactionType>[];
+export type ToTargetUpdate = {
+  foreignId: string;
+  time: string;
+  addedTargets?: string[];
+  newTargets?: string[];
+  removedTargets?: string[];
+};
+
+type ToTargetUpdateInternal = {
+  foreign_id: string;
+  time: string;
+  added_targets?: string[];
+  new_targets?: string[];
+  removed_targets?: string[];
 };
 
 /**
@@ -240,15 +219,8 @@ export type GetActivitiesAPIResponse<
  * The feed object contains convenience functions such add activity, remove activity etc
  * @class StreamFeed
  */
-export class StreamFeed<
-  UserType extends UR = UR,
-  ActivityType extends UR = UR,
-  CollectionType extends UR = UR,
-  ReactionType extends UR = UR,
-  ChildReactionType extends UR = UR,
-  PersonalizationType extends UR = UR,
-> {
-  client: StreamClient<UserType, ActivityType, CollectionType, ReactionType, ChildReactionType, PersonalizationType>;
+export class StreamFeed<StreamFeedGenerics extends DefaultGenerics = DefaultGenerics> {
+  client: StreamClient<StreamFeedGenerics>;
   token: string;
   id: string;
   slug: string;
@@ -267,12 +239,7 @@ export class StreamFeed<
    * @param {string} userId - The user id
    * @param {string} [token] - The authentication token
    */
-  constructor(
-    client: StreamClient<UserType, ActivityType, CollectionType, ReactionType, ChildReactionType, PersonalizationType>,
-    feedSlug: string,
-    userId: string,
-    token: string,
-  ) {
+  constructor(client: StreamClient<StreamFeedGenerics>, feedSlug: string, userId: string, token: string) {
     if (!feedSlug || !userId) {
       throw new FeedError('Please provide a feed slug and user id, ie client.feed("user", "1")');
     }
@@ -307,16 +274,16 @@ export class StreamFeed<
    * @link https://getstream.io/activity-feeds/docs/node/adding_activities/?language=js#adding-activities-basic
    * @method addActivity
    * @memberof StreamFeed.prototype
-   * @param {NewActivity<ActivityType>} activity - The activity to add
-   * @return {Promise<Activity<ActivityType>>}
+   * @param {NewActivity<StreamFeedGenerics>} activity - The activity to add
+   * @return {Promise<Activity<StreamFeedGenerics>>}
    */
-  addActivity(activity: NewActivity<ActivityType>) {
+  addActivity(activity: NewActivity<StreamFeedGenerics>) {
     activity = utils.replaceStreamObjects(activity);
     if (!activity.actor && this.client.currentUser) {
       activity.actor = this.client.currentUser.ref();
     }
 
-    return this.client.post<Activity<ActivityType>>({
+    return this.client.post<Activity<StreamFeedGenerics>>({
       url: `feed/${this.feedUrl}/`,
       body: activity,
       token: this.token,
@@ -350,11 +317,11 @@ export class StreamFeed<
    * @link https://getstream.io/activity-feeds/docs/node/add_many_activities/?language=js#batch-add-activities
    * @method addActivities
    * @memberof StreamFeed.prototype
-   * @param  {NewActivity<ActivityType>[]}   activities Array of activities to add
-   * @return {Promise<Activity<ActivityType>[]>}
+   * @param  {NewActivity<StreamFeedGenerics>[]}   activities Array of activities to add
+   * @return {Promise<Activity<StreamFeedGenerics>[]>}
    */
-  addActivities(activities: NewActivity<ActivityType>[]) {
-    return this.client.post<Activity<ActivityType>[]>({
+  addActivities(activities: NewActivity<StreamFeedGenerics>[]) {
+    return this.client.post<Activity<StreamFeedGenerics>[]>({
       url: `feed/${this.feedUrl}/`,
       body: { activities: utils.replaceStreamObjects(activities) },
       token: this.token,
@@ -518,7 +485,7 @@ export class StreamFeed<
 
     const path = this.client.shouldUseEnrichEndpoint(options) ? 'enrich/feed/' : 'feed/';
 
-    return this.client.get<FeedAPIResponse<UserType, ActivityType, CollectionType, ReactionType, ChildReactionType>>({
+    return this.client.get<FeedAPIResponse<StreamFeedGenerics>>({
       url: `${path}${this.feedUrl}/`,
       qs: { ...options, ...extraOptions },
       token: this.token,
@@ -563,14 +530,14 @@ export class StreamFeed<
    * @link https://getstream.io/activity-feeds/docs/node/web_and_mobile/?language=js#subscribe-to-realtime-updates-via-api-client
    * @method subscribe
    * @memberof StreamFeed.prototype
-   * @param  {function} Faye.Callback<RealTimeMessage<UserType, ActivityType, CollectionType, ReactionType>> Callback to call on completion
+   * @param  {function} Faye.Callback<RealTimeMessage<StreamFeedGenerics>> Callback to call on completion
    * @return {Promise<Faye.Subscription>}
    * @example
    * feed.subscribe(callback).then(function(){
    * 		console.log('we are now listening to changes');
    * });
    */
-  subscribe(callback: Faye.SubscribeCallback<RealTimeMessage<UserType, ActivityType, CollectionType, ReactionType>>) {
+  subscribe(callback: Faye.SubscribeCallback<RealTimeMessage<StreamFeedGenerics>>) {
     if (!this.client.appId) {
       throw new SiteError(
         'Missing app id, which is needed to subscribe, use var client = stream.connect(key, secret, appId);',
@@ -600,16 +567,7 @@ export class StreamFeed<
     }
   }
 
-  /**
-   * Updates an activity's "to" fields
-   * @link https://getstream.io/activity-feeds/docs/node/targeting/?language=js
-   * @param {string} foreignId The foreign_id of the activity to update
-   * @param {string} time The time of the activity to update
-   * @param {string[]} newTargets Set the new "to" targets for the activity - will remove old targets
-   * @param {string[]} addedTargets Add these new targets to the activity
-   * @param {string[]} removedTargets Remove these targets from the activity
-   */
-  updateActivityToTargets(
+  _validateToTargetInput(
     foreignId: string,
     time: string,
     newTargets?: string[],
@@ -639,22 +597,52 @@ export class StreamFeed<
         }
       });
     }
+  }
 
-    const body: {
-      foreign_id: string;
-      time: string;
-      added_targets?: string[];
-      new_targets?: string[];
-      removed_targets?: string[];
-    } = { foreign_id: foreignId, time };
-    if (newTargets) body.new_targets = newTargets;
-    if (addedTargets) body.added_targets = addedTargets;
-    if (removedTargets) body.removed_targets = removedTargets;
+  /**
+   * Updates an activity's "to" fields
+   * @link https://getstream.io/activity-feeds/docs/node/targeting/?language=js
+   * @param {string} foreignId The foreign_id of the activity to update
+   * @param {string} time The time of the activity to update
+   * @param {string[]} newTargets Set the new "to" targets for the activity - will remove old targets
+   * @param {string[]} addedTargets Add these new targets to the activity
+   * @param {string[]} removedTargets Remove these targets from the activity
+   */
+  updateActivityToTargets(
+    foreignId: string,
+    time: string,
+    newTargets?: string[],
+    addedTargets?: string[],
+    removedTargets?: string[],
+  ) {
+    return this._updateActivityToTargetsMany([{ foreignId, time, newTargets, addedTargets, removedTargets }]);
+  }
 
-    return this.client.post<APIResponse & Activity<ActivityType> & { added?: string[]; removed?: string[] }>({
+  // NOTE: it can change without notice
+  _updateActivityToTargetsMany(inputs: ToTargetUpdate[]) {
+    if (!inputs || inputs.length === 0) {
+      throw new Error('At least one input is required');
+    }
+    const body: ToTargetUpdateInternal[] = [];
+    for (let i = 0; i < inputs.length; i++) {
+      const input = inputs[i];
+      this._validateToTargetInput(
+        input.foreignId,
+        input.time,
+        input.newTargets,
+        input.addedTargets,
+        input.removedTargets,
+      );
+      const item: ToTargetUpdateInternal = { foreign_id: input.foreignId, time: input.time };
+      if (input.newTargets) item.new_targets = input.newTargets;
+      if (input.addedTargets) item.added_targets = input.addedTargets;
+      if (input.removedTargets) item.removed_targets = input.removedTargets;
+      body.push(item);
+    }
+    return this.client.post<APIResponse & Activity<StreamFeedGenerics> & { added?: string[]; removed?: string[] }>({
       url: `feed_targets/${this.feedUrl}/activity_to_targets/`,
       token: this.token,
-      body,
+      body: body.length > 1 ? body : body[0],
     });
   }
 }
